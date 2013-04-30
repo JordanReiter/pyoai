@@ -312,15 +312,19 @@ class ServerBase(common.ResumptionOAIPMH):
         
     def handleVerb(self, verb, kw):
         method = common.getMethodForVerb(self._tree_server, verb)
-        return etree.tostring(method(**kw).getroot(), 
+        root = method(**kw).getroot()
+        root.addprevious(etree.PI('xml-stylesheet', 'type="text/xsl" href="/oai2.xsl"'))
+        return etree.tostring(root.getroottree(), 
                               encoding='UTF-8',
                               xml_declaration=True,
                               pretty_print=True)
   
     def handleException(self, kw, exc_info):
         type, value, traceback = exc_info
+        root = self._tree_server.handleException(value).getroot()
+        root.addprevious(etree.PI('xml-stylesheet', 'type="text/xsl" href="/static/oai2.xsl"'))
         return etree.tostring(
-            self._tree_server.handleException(value).getroot(),
+            root.getroottree(),
             encoding='UTF-8',
             xml_declaration=True,
             pretty_print=True)
